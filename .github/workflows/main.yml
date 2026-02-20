@@ -1,0 +1,39 @@
+name: BotOtomatis
+
+on:
+  workflow_dispatch: # Supaya kamu bisa klik tombol "Play" manual
+  schedule:
+    - cron: '*/30 * * * *' # Mesin akan bangun sendiri tiap 30 menit
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Izin agar bot bisa simpan file jackpot.txt ke repo kamu
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install Library
+        run: pip install solana base58
+
+      - name: Eksekusi Hunter
+        run: python hunter.py
+
+      - name: Simpan Hasil
+        if: always()
+        run: |
+          git config --global user.name "Bot-CoffeeCapy"
+          git config --global user.email "bot@github.com"
+          if [ -f jackpot.txt ]; then
+            git add jackpot.txt
+            git commit -m "🚨 ADA SALDO DITEMUKAN 🚨"
+            git push
+          else
+            echo "Belum ada saldo, coba lagi nanti."
+          fi
